@@ -5,12 +5,12 @@ package provider
 
 import (
 	"github.com/google/wire"
-	"github.com/xhpolaris/opeanapi-user/biz/adaptor"
+	"github.com/xh-polaris/openapi-charge/biz/adaptor"
 )
 
-func NewProvider() (*adaptor.UserServer, error) {
+func NewProvider() (*adaptor.ChargeServer, error) {
 	wire.Build(
-		wire.Struct(new(adaptor.UserServer), "*"),
+		wire.Struct(new(adaptor.ChargeServer), "*"),
 		AllProvider,
 	)
 	return nil, nil
