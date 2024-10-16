@@ -2,7 +2,13 @@ package gradient
 
 import (
 	"context"
+	"errors"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/config"
+	"github.com/xh-polaris/openapi-charge/biz/infrastructure/consts"
+	"github.com/zeromicro/go-zero/core/stores/monc"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"time"
 )
 
 const (
@@ -13,7 +19,7 @@ const (
 type IMongoMapper interface {
 	Insert(ctx context.Context, g *Gradient) error
 	Update(ctx context.Context, g *Gradient) error
-	FindOne(ctx context.Context, basicInterfaceId string) ([]*Gradient, error)
+	FindOne(ctx context.Context, basicInterfaceId string) (*Gradient, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -27,21 +33,56 @@ func NewMongoMapper(config *config.Config) *MongoMapper {
 }
 
 func (m *MongoMapper) Insert(ctx context.Context, g *Gradient) error {
-	//TODO implement me
-	panic("implement me")
+	if g.ID.IsZero() {
+		g.ID = primitive.NewObjectID()
+		g.CreateTime = time.Now()
+		g.UpdateTime = g.CreateTime
+	}
+	key := prefixKeyCacheKey + g.ID.Hex()
+	_, err := m.conn.InsertOne(ctx, key, g)
+	return err
 }
 
 func (m *MongoMapper) Update(ctx context.Context, g *Gradient) error {
-	//TODO implement me
-	panic("implement me")
+	g.UpdateTime = time.Now()
+	key := prefixKeyCacheKey + g.ID.Hex()
+	_, err := m.conn.UpdateByID(ctx, key, g.ID, bson.M{consts.Set: g})
+	return err
 }
 
-func (m *MongoMapper) FindOne(ctx context.Context, basicInterfaceId string) ([]*Gradient, error) {
-	//TODO implement me
-	panic("implement me")
+func (m *MongoMapper) FindOne(ctx context.Context, basicInterfaceId string) (*Gradient, error) {
+	var g Gradient
+	key := prefixKeyCacheKey + basicInterfaceId
+	err := m.conn.FindOne(ctx, key, &g,
+		bson.M{
+			consts.BasicInterfaceId: basicInterfaceId,
+			consts.Status:           bson.M{consts.NotEqual: consts.DeleteStatus},
+		})
+	switch {
+	case err == nil:
+		return &g, nil
+	case errors.Is(err, monc.ErrNotFound):
+		return nil, consts.ErrNotFound
+	default:
+		return nil, err
+	}
 }
 
 func (m *MongoMapper) Delete(ctx context.Context, id string) error {
-	//TODO implement me
-	panic("implement me")
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return consts.ErrInValidId
+	}
+	var g Gradient
+	key := prefixKeyCacheKey + id
+	err = m.conn.FindOne(ctx, key, &g, bson.M{consts.ID: oid})
+	if err != nil {
+		return consts.ErrNotFound
+	}
+	now := time.Now()
+	g.DeleteTime = now
+	g.UpdateTime = now
+	g.Status = consts.DeleteStatus
+	_, err = m.conn.UpdateByID(ctx, key, oid, bson.M{consts.Set: g})
+	return err
 }

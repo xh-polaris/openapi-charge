@@ -1,25 +1,40 @@
 package main
 
 import (
-  "fmt"
+	"github.com/cloudwego/kitex/pkg/klog"
+	"github.com/cloudwego/kitex/pkg/rpcinfo"
+	"github.com/cloudwego/kitex/server"
+	"github.com/kitex-contrib/obs-opentelemetry/tracing"
+	"github.com/xh-polaris/gopkg/kitex/middleware"
+	logx "github.com/xh-polaris/gopkg/util/log"
+	"github.com/xh-polaris/openapi-charge/biz/infrastructure/config"
+	"github.com/xh-polaris/openapi-charge/biz/infrastructure/util/log"
+	"github.com/xh-polaris/openapi-charge/provider"
+	"github.com/xh-polaris/service-idl-gen-go/kitex_gen/openapi/charge/charge"
+	"net"
 )
 
-//TIP To run your code, right-click the code and select <b>Run</b>. Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.
-
 func main() {
-  //TIP Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined or highlighted text
-  // to see how GoLand suggests fixing it.
-  s := "gopher"
-  fmt.Println("Hello and welcome, %s!", s)
+	klog.SetLogger(logx.NewKlogLogger())
+	s, err := provider.NewProvider()
+	if err != nil {
+		panic(err)
+	}
+	addr, err := net.ResolveTCPAddr("tcp", config.GetConfig().ListenOn)
+	if err != nil {
+		panic(err)
+	}
+	svr := charge.NewServer(
+		s,
+		server.WithServiceAddr(addr),
+		server.WithSuite(tracing.NewServerSuite()),
+		server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: config.GetConfig().Name}),
+		server.WithMiddleware(middleware.LogMiddleware(config.GetConfig().Name)),
+	)
 
-  for i := 1; i <= 5; i++ {
-	//TIP You can try debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-	// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>. To start your debugging session, 
-	// right-click your code in the editor and select the <b>Debug</b> option. 
-	fmt.Println("i =", 100/i)
-  }
+	err = svr.Run()
+
+	if err != nil {
+		log.Error(err.Error())
+	}
 }
-
-//TIP See GoLand help at <a href="https://www.jetbrains.com/help/go/">jetbrains.com/help/go/</a>.
-// Also, you can try interactive lessons for GoLand by selecting 'Help | Learn IDE Features' from the main menu.

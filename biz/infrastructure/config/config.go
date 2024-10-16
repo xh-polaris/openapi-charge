@@ -11,10 +11,6 @@ import (
 
 var config *Config
 
-type Security struct {
-	Issue string
-}
-
 type Config struct {
 	service.ServiceConf
 	ListenOn string
@@ -22,8 +18,7 @@ type Config struct {
 		URL string
 		DB  string
 	}
-	Cache    cache.CacheConf
-	Security Security
+	Cache cache.CacheConf
 }
 
 func NewConfig() (*Config, error) {
