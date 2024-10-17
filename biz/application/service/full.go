@@ -121,7 +121,7 @@ func (s *FullInterfaceService) DeleteFullInterface(ctx context.Context, req *cha
 }
 
 func (s *FullInterfaceService) GetFullInterface(ctx context.Context, req *charge.GetFullInterfaceReq) (*charge.GetFullInterfaceResp, error) {
-	userId := req.User.UserId
+	userId := req.UserId
 	data, total, err := s.FullInterfaceMongoMapper.FindAndCountByUserId(ctx, userId, req.PaginationOptions)
 	if err != nil {
 		return nil, err
