@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/google/wire"
 	"github.com/jinzhu/copier"
+	"github.com/xh-polaris/openapi-charge/biz/infrastructure/consts"
+	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/base"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/full"
 	"github.com/xh-polaris/service-idl-gen-go/kitex_gen/openapi/charge"
 	"strconv"
@@ -16,10 +18,12 @@ type IFullInterfaceService interface {
 	UpdateMargin(ctx context.Context, req *charge.UpdateMarginReq) (*charge.UpdateMarginResp, error)
 	DeleteFullInterface(ctx context.Context, req *charge.DeleteFullInterfaceReq) (*charge.DeleteFullInterfaceResp, error)
 	GetFullInterface(ctx context.Context, req *charge.GetFullInterfaceReq) (*charge.GetFullInterfaceResp, error)
+	GetFullAndBaseInterfaceForCheck(ctx context.Context, req *charge.GetFullAndBaseInterfaceForCheckReq) (*charge.GetFullAndBaseInterfaceForCheckResp, error)
 }
 
 type FullInterfaceService struct {
 	FullInterfaceMongoMapper *full.MongoMapper
+	BaseInterfaceMongoMapper *base.MongoMapper
 }
 
 var FullInterfaceServiceSet = wire.NewSet(
@@ -143,4 +147,52 @@ func (s *FullInterfaceService) GetFullInterface(ctx context.Context, req *charge
 		FullInterfaces: infs,
 		Total:          total,
 	}, nil
+}
+
+func (s *FullInterfaceService) GetFullAndBaseInterfaceForCheck(ctx context.Context, req *charge.GetFullAndBaseInterfaceForCheckReq) (*charge.GetFullAndBaseInterfaceForCheckResp, error) {
+	url := req.Url
+	userId := req.UserId
+	method := req.Method
+
+	// 获取基本接口
+	baseInf, err := s.BaseInterfaceMongoMapper.FindOneByURLAndMethod(ctx, url, method)
+	if err != nil {
+		return &charge.GetFullAndBaseInterfaceForCheckResp{
+			Id:                  "",
+			BaseInterfaceId:     "",
+			BaseInterfaceStatus: 0,
+			UserId:              "",
+			ChargeType:          0,
+			Price:               0,
+			Margin:              0,
+			Status:              0,
+		}, consts.ErrNoBaseInf
+	}
+
+	// 获取完整接口
+	fullInf, err := s.FullInterfaceMongoMapper.FindOneByBaseInfIdAndUserId(ctx, baseInf.ID.Hex(), userId)
+	if err != nil {
+		return &charge.GetFullAndBaseInterfaceForCheckResp{
+			Id:                  "",
+			BaseInterfaceId:     "",
+			BaseInterfaceStatus: 0,
+			UserId:              "",
+			ChargeType:          0,
+			Price:               0,
+			Margin:              0,
+			Status:              0,
+		}, consts.ErrNoBaseInf
+	}
+
+	return &charge.GetFullAndBaseInterfaceForCheckResp{
+		Id:                  fullInf.ID.Hex(),
+		BaseInterfaceId:     baseInf.ID.Hex(),
+		BaseInterfaceStatus: baseInf.Status,
+		UserId:              fullInf.UserId,
+		ChargeType:          fullInf.ChargeType,
+		Price:               fullInf.Price,
+		Margin:              fullInf.Margin,
+		Status:              fullInf.Status,
+	}, nil
+
 }

@@ -11,4 +11,8 @@ const (
 	Set              = "$set"
 	BasicInterfaceId = "basic_interface_id"
 	FullInterfaceId  = "full_interface_id"
+	Host             = "host"
+	Method           = "method"
+	Path             = "path"
+	EffectStatus     = 0
 )

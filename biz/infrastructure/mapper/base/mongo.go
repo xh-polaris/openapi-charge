@@ -3,6 +3,7 @@ package base
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/config"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/consts"
 	util "github.com/xh-polaris/openapi-charge/biz/infrastructure/util/page"
@@ -11,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"net/url"
 	"time"
 )
 
@@ -24,6 +26,7 @@ type IMongoMapper interface {
 	Update(ctx context.Context, i *Interface) error
 	FindAndCount(ctx context.Context, p *basic.PaginationOptions) ([]*Interface, int64, error)
 	FindOne(ctx context.Context, id string) (i *Interface, err error)
+	FindOneByURLAndMethod(ctx context.Context, rawURL string, method string) (i *Interface, err error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -116,5 +119,55 @@ func (m *MongoMapper) FindOne(ctx context.Context, id string) (i *Interface, err
 		return nil, consts.ErrNotFound
 	default:
 		return nil, err
+	}
+}
+
+func (m *MongoMapper) FindOneByURLAndMethod(ctx context.Context, rawURL string, method string) (i *Interface, err error) {
+	host, path := parseURL(rawURL)
+
+	var inf Interface
+	key := prefixKeyCacheKey + host + path + method
+	err = m.conn.FindOne(ctx, key, &inf, bson.M{
+		consts.Host:   host,
+		consts.Path:   path,
+		consts.Method: methodToEn(method),
+		consts.Status: consts.EffectStatus,
+	})
+
+	switch {
+	case err == nil:
+		return &inf, nil
+	case errors.Is(err, monc.ErrNotFound):
+		return nil, consts.ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
+func parseURL(rawURL string) (string, string) {
+	// 解析 URL
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		fmt.Println("解析 URL 时发生错误:", err)
+		return "", ""
+	}
+
+	// 获取 host 和 path
+	host := parsedURL.Host
+	path := parsedURL.Path
+
+	return host, path
+}
+
+func methodToEn(method string) int64 {
+	switch method {
+	case "GET":
+		return 0
+	case "POST":
+		return 1
+	case "PUT":
+		return 2
+	default:
+		return 0
 	}
 }

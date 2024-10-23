@@ -25,6 +25,7 @@ type IMongoMapper interface {
 	UpdateMargin(ctx context.Context, id string, increment int64) error
 	FindAndCountByUserId(ctx context.Context, userId string, p *basic.PaginationOptions) ([]*Interface, int64, error)
 	FindOne(ctx context.Context, id string) (*Interface, error)
+	FindOneByBaseInfIdAndUserId(ctx context.Context, baseInfId string, userId string) (*Interface, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -119,6 +120,24 @@ func (m *MongoMapper) FindOne(ctx context.Context, id string) (*Interface, error
 	err = m.conn.FindOne(ctx, key, &inf, bson.M{
 		consts.ID:     oid,
 		consts.Status: bson.M{consts.NotEqual: consts.DeleteStatus},
+	})
+	switch {
+	case err == nil:
+		return &inf, nil
+	case errors.Is(err, monc.ErrNotFound):
+		return nil, consts.ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
+func (m *MongoMapper) FindOneByBaseInfIdAndUserId(ctx context.Context, baseInfId string, userId string) (*Interface, error) {
+	var inf Interface
+	key := prefixKeyCacheKey + baseInfId + userId
+	err := m.conn.FindOne(ctx, key, &inf, bson.M{
+		consts.BasicInterfaceId: baseInfId,
+		consts.UserID:           userId,
+		consts.Status:           consts.EffectStatus,
 	})
 	switch {
 	case err == nil:
