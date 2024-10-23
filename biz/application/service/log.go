@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/wire"
 	"github.com/jinzhu/copier"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/full"
@@ -16,8 +17,9 @@ type ILogService interface {
 }
 
 type LogService struct {
-	LogMongoMapper  *log.MongoMapper
-	FullMongoMapper *full.MongoMapper
+	FullInterfaceService *FullInterfaceService
+	LogMongoMapper       *log.MongoMapper
+	FullMongoMapper      *full.MongoMapper
 }
 
 var LogServiceSet = wire.NewSet(
@@ -26,6 +28,7 @@ var LogServiceSet = wire.NewSet(
 )
 
 func (s *LogService) CreateLog(ctx context.Context, req *charge.CreateLogReq) (res *charge.CreateLogResp, err error) {
+	// 查询完整接口
 	inf, err := s.FullMongoMapper.FindOne(ctx, req.FullInterfaceId)
 	if err != nil {
 		return &charge.CreateLogResp{
@@ -33,30 +36,44 @@ func (s *LogService) CreateLog(ctx context.Context, req *charge.CreateLogReq) (r
 			Msg:  "完整接口不存在或被删除",
 		}, err
 	}
+	// 计算价格
+	value := inf.Price * req.Count
+
+	// 扣除费用
+	deduct := true
+	resp, err := s.FullInterfaceService.UpdateMargin(ctx, &charge.UpdateMarginReq{
+		Id:        req.FullInterfaceId,
+		Increment: -1 * value,
+	})
+	if err != nil || resp.Done == false {
+		deduct = false
+	}
+	info := deductInfo(deduct, req.FullInterfaceId, value)
+	// 创建日志
 	l := &log.Log{
 		FullInterfaceId: req.FullInterfaceId,
 		UserId:          req.UserId,
 		KeyId:           req.KeyId,
 		Status:          int64(req.Status),
-		Info:            req.Info,
+		Info:            req.Info + "\n" + info,
 		Count:           req.Count,
-		Value:           inf.Price * req.Count,
+		Value:           value,
 		Timestamp:       time.Unix(req.Timestamp, 0),
 		CreateTime:      time.Now(),
 	}
+
 	err = s.LogMongoMapper.Insert(ctx, l)
 	if err != nil {
 		return &charge.CreateLogResp{
 			Done: false,
-			Msg:  "创建调用记录失败",
+			Msg:  "创建调用记录失败" + info,
 		}, err
 	}
 	return &charge.CreateLogResp{
 		Done: true,
-		Msg:  "创建调用记录成功",
+		Msg:  "创建调用记录成功" + info,
 	}, nil
 }
-
 func (s *LogService) GetLog(ctx context.Context, req *charge.GetLogReq) (res *charge.GetLogResp, err error) {
 	data, total, err := s.LogMongoMapper.FindAndCountByInfId(ctx, req.FullInterfaceId, req.PaginationOptions)
 	if err != nil {
@@ -79,4 +96,14 @@ func (s *LogService) GetLog(ctx context.Context, req *charge.GetLogReq) (res *ch
 		Logs:  logs,
 		Total: total,
 	}, nil
+}
+
+func deductInfo(d bool, id string, value int64) string {
+	var result string
+	if !d {
+		result = fmt.Sprintf("完整接口id: %s 扣除费用%d 失败", id, value)
+	} else {
+		result = fmt.Sprintf("完整接口id: %s 扣除费用%d 成功", id, value)
+	}
+	return result
 }
