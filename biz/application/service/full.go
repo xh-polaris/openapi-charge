@@ -18,6 +18,7 @@ type IFullInterfaceService interface {
 	UpdateMargin(ctx context.Context, req *charge.UpdateMarginReq) (*charge.UpdateMarginResp, error)
 	DeleteFullInterface(ctx context.Context, req *charge.DeleteFullInterfaceReq) (*charge.DeleteFullInterfaceResp, error)
 	GetFullInterface(ctx context.Context, req *charge.GetFullInterfaceReq) (*charge.GetFullInterfaceResp, error)
+	GetOneFullInterface(ctx context.Context, req *charge.GetOneFullInterfaceReq) (res *charge.GetOneFullInterfaceResp, err error)
 	GetFullAndBaseInterfaceForCheck(ctx context.Context, req *charge.GetFullAndBaseInterfaceForCheckReq) (*charge.GetFullAndBaseInterfaceForCheckResp, error)
 }
 
@@ -147,6 +148,31 @@ func (s *FullInterfaceService) GetFullInterface(ctx context.Context, req *charge
 		FullInterfaces: infs,
 		Total:          total,
 	}, nil
+}
+
+func (s *FullInterfaceService) GetOneFullInterface(ctx context.Context, req *charge.GetOneFullInterfaceReq) (res *charge.GetOneFullInterfaceResp, err error) {
+	id := req.Id
+	inf, err := s.FullInterfaceMongoMapper.FindOne(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if inf == nil {
+		return nil, consts.ErrNotFound
+	}
+	res = &charge.GetOneFullInterfaceResp{
+		Inf: &charge.FullInterface{
+			Id:              inf.ID.Hex(),
+			BaseInterfaceId: inf.BaseInterfaceId,
+			UserId:          inf.UserId,
+			ChargeType:      charge.ChargeType(inf.ChargeType),
+			Price:           inf.Price,
+			Margin:          inf.Margin,
+			Status:          charge.InterfaceStatus(inf.Status),
+			CreateTime:      inf.CreateTime.Unix(),
+			UpdateTime:      inf.UpdateTime.Unix(),
+		},
+	}
+	return res, nil
 }
 
 func (s *FullInterfaceService) GetFullAndBaseInterfaceForCheck(ctx context.Context, req *charge.GetFullAndBaseInterfaceForCheckReq) (*charge.GetFullAndBaseInterfaceForCheckResp, error) {

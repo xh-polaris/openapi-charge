@@ -190,6 +190,10 @@ github.com/xh-polaris/service-idl-gen-go v0.0.0-20241023021456-55c64c386cdb h1:s
 github.com/xh-polaris/service-idl-gen-go v0.0.0-20241023021456-55c64c386cdb/go.mod h1:3ixuadpEpTumm8RftVwtXYH8Zfmu6shi33Hh5GKC6cU=
 github.com/xh-polaris/service-idl-gen-go v0.0.0-20241023025447-d8c8da230f5e h1:Nqu5r6u1Up2CxLRtfq/TPzR8u0VVzkMdNCVFMxhkkEI=
 github.com/xh-polaris/service-idl-gen-go v0.0.0-20241023025447-d8c8da230f5e/go.mod h1:3ixuadpEpTumm8RftVwtXYH8Zfmu6shi33Hh5GKC6cU=
+github.com/xh-polaris/service-idl-gen-go v0.0.0-20241024082915-1f9d31ac06e1 h1:/da/GZaDdFjs4KQ15lTwlrNv2OI+wMW4rV7mIzD9We4=
+github.com/xh-polaris/service-idl-gen-go v0.0.0-20241024082915-1f9d31ac06e1/go.mod h1:3ixuadpEpTumm8RftVwtXYH8Zfmu6shi33Hh5GKC6cU=
+github.com/xh-polaris/service-idl-gen-go v0.0.0-20241025025637-fb9c292e3435 h1:Pfod8yD/rKi9duEXcJu01WS72Bnkf/OsJ4yRzhfKN8g=
+github.com/xh-polaris/service-idl-gen-go v0.0.0-20241025025637-fb9c292e3435/go.mod h1:3ixuadpEpTumm8RftVwtXYH8Zfmu6shi33Hh5GKC6cU=
 github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a h1:fZHgsYlfvtyqToslyjUt3VOPF4J7aK/3MPcK7xp3PDk=
 github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a/go.mod h1:ul22v+Nro/R083muKhosV54bj5niojjWZvU8xrevuH4=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=

@@ -17,6 +17,7 @@ type IInterfaceController interface {
 	UpdateMargin(ctx context.Context, req *charge.UpdateMarginReq) (res *charge.UpdateMarginResp, err error)
 	DeleteFullInterface(ctx context.Context, req *charge.DeleteFullInterfaceReq) (res *charge.DeleteFullInterfaceResp, err error)
 	GetFullInterface(ctx context.Context, req *charge.GetFullInterfaceReq) (res *charge.GetFullInterfaceResp, err error)
+	GetOneFullInterface(ctx context.Context, req *charge.GetOneFullInterfaceReq) (res *charge.GetOneFullInterfaceResp, err error)
 	GetFullAndBaseInterfaceForCheck(ctx context.Context, req *charge.GetFullAndBaseInterfaceForCheckReq) (res *charge.GetFullAndBaseInterfaceForCheckResp, err error)
 	CreateGradient(ctx context.Context, req *charge.CreateGradientReq) (res *charge.CreateGradientResp, err error)
 	UpdateGradient(ctx context.Context, req *charge.UpdateGradientReq) (res *charge.UpdateGradientResp, err error)
@@ -60,6 +61,9 @@ func (c *InterfaceController) DeleteFullInterface(ctx context.Context, req *char
 }
 func (c *InterfaceController) GetFullInterface(ctx context.Context, req *charge.GetFullInterfaceReq) (res *charge.GetFullInterfaceResp, err error) {
 	return c.FullInterfaceService.GetFullInterface(ctx, req)
+}
+func (c *InterfaceController) GetOneFullInterface(ctx context.Context, req *charge.GetOneFullInterfaceReq) (res *charge.GetOneFullInterfaceResp, err error) {
+	return c.FullInterfaceService.GetOneFullInterface(ctx, req)
 }
 func (c *InterfaceController) GetFullAndBaseInterfaceForCheck(ctx context.Context, req *charge.GetFullAndBaseInterfaceForCheckReq) (res *charge.GetFullAndBaseInterfaceForCheckResp, err error) {
 	return c.FullInterfaceService.GetFullAndBaseInterfaceForCheck(ctx, req)
