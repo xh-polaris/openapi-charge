@@ -38,7 +38,7 @@ func NewMongoMapper(config *config.Config) *MongoMapper {
 	return &MongoMapper{conn: conn}
 }
 
-func (m *MongoMapper) Insert(ctx context.Context, i *Interface) error {
+func (m *MongoMapper) Insert(ctx context.Context, i *Interface) (string, error) {
 	if i.ID.IsZero() {
 		i.ID = primitive.NewObjectID()
 		i.CreateTime = time.Now()
@@ -46,7 +46,7 @@ func (m *MongoMapper) Insert(ctx context.Context, i *Interface) error {
 	}
 	key := prefixKeyCacheKey + i.ID.Hex()
 	_, err := m.conn.InsertOne(ctx, key, i)
-	return err
+	return i.ID.Hex(), err
 }
 
 func (m *MongoMapper) Update(ctx context.Context, i *Interface) error {

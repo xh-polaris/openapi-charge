@@ -44,11 +44,12 @@ func (s *FullInterfaceService) CreateFullInterface(ctx context.Context, req *cha
 		CreateTime:      now,
 		UpdateTime:      now,
 	}
-	err := s.FullInterfaceMongoMapper.Insert(ctx, inf)
+	fullInterfaceId, err := s.FullInterfaceMongoMapper.Insert(ctx, inf)
 	if err != nil {
 		return &charge.CreateFullInterfaceResp{
-			Done: false,
-			Msg:  "创建完整接口失败",
+			Done:            false,
+			Msg:             "创建完整接口失败",
+			FullInterfaceId: fullInterfaceId,
 		}, err
 	}
 	return &charge.CreateFullInterfaceResp{
