@@ -110,6 +110,7 @@ func (s *BaseInterfaceService) GetBaseInterface(ctx context.Context, req *charge
 			return nil, err
 		}
 		inf.Id = val.ID.Hex()
+		inf.Params = toParameters(val.Params)
 		inf.CreateTime = val.CreateTime.Unix()
 		inf.UpdateTime = val.UpdateTime.Unix()
 		inf.Status = charge.InterfaceStatus(val.Status)
@@ -127,4 +128,15 @@ func ParseParams(parameters []*charge.Parameter) map[string]string {
 		params[param.Name] = param.Type
 	}
 	return params
+}
+
+func toParameters(params map[string]string) []*charge.Parameter {
+	var parameters []*charge.Parameter
+	for k, v := range params {
+		parameters = append(parameters, &charge.Parameter{
+			Name: k,
+			Type: v,
+		})
+	}
+	return parameters
 }
