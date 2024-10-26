@@ -38,22 +38,19 @@ func (m *MongoMapper) Insert(ctx context.Context, g *Gradient) error {
 		g.CreateTime = time.Now()
 		g.UpdateTime = g.CreateTime
 	}
-	key := prefixKeyCacheKey + g.ID.Hex()
-	_, err := m.conn.InsertOne(ctx, key, g)
+	_, err := m.conn.InsertOneNoCache(ctx, g)
 	return err
 }
 
 func (m *MongoMapper) Update(ctx context.Context, g *Gradient) error {
 	g.UpdateTime = time.Now()
-	key := prefixKeyCacheKey + g.ID.Hex()
-	_, err := m.conn.UpdateByID(ctx, key, g.ID, bson.M{consts.Set: g})
+	_, err := m.conn.UpdateByIDNoCache(ctx, g.ID, bson.M{consts.Set: g})
 	return err
 }
 
 func (m *MongoMapper) FindOne(ctx context.Context, baseInterfaceId string) (*Gradient, error) {
 	var g Gradient
-	key := prefixKeyCacheKey + baseInterfaceId
-	err := m.conn.FindOne(ctx, key, &g,
+	err := m.conn.FindOneNoCache(ctx, &g,
 		bson.M{
 			consts.FullInterfaceId: baseInterfaceId,
 			consts.Status:          bson.M{consts.NotEqual: consts.DeleteStatus},
@@ -74,8 +71,7 @@ func (m *MongoMapper) Delete(ctx context.Context, id string) error {
 		return consts.ErrInValidId
 	}
 	var g Gradient
-	key := prefixKeyCacheKey + id
-	err = m.conn.FindOne(ctx, key, &g, bson.M{consts.ID: oid})
+	err = m.conn.FindOneNoCache(ctx, &g, bson.M{consts.ID: oid})
 	if err != nil {
 		return consts.ErrNotFound
 	}
@@ -83,6 +79,6 @@ func (m *MongoMapper) Delete(ctx context.Context, id string) error {
 	g.DeleteTime = now
 	g.UpdateTime = now
 	g.Status = consts.DeleteStatus
-	_, err = m.conn.UpdateByID(ctx, key, oid, bson.M{consts.Set: g})
+	_, err = m.conn.UpdateByIDNoCache(ctx, oid, bson.M{consts.Set: g})
 	return err
 }

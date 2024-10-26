@@ -43,15 +43,13 @@ func (m *MongoMapper) Insert(ctx context.Context, i *Interface) (string, error) 
 		i.CreateTime = time.Now()
 		i.UpdateTime = i.CreateTime
 	}
-	key := prefixKeyCacheKey + i.ID.Hex()
-	_, err := m.conn.InsertOne(ctx, key, i)
+	_, err := m.conn.InsertOneNoCache(ctx, i)
 	return i.ID.Hex(), err
 }
 
 func (m *MongoMapper) Update(ctx context.Context, i *Interface) error {
 	i.UpdateTime = time.Now()
-	key := prefixKeyCacheKey + i.ID.Hex()
-	_, err := m.conn.UpdateByID(ctx, key, i.ID, bson.M{consts.Set: i})
+	_, err := m.conn.UpdateByIDNoCache(ctx, i.ID, bson.M{consts.Set: i})
 	return err
 }
 
@@ -86,8 +84,7 @@ func (m *MongoMapper) Delete(ctx context.Context, id string) error {
 		return consts.ErrInValidId
 	}
 	var i Interface
-	key := prefixKeyCacheKey + id
-	err = m.conn.FindOne(ctx, key, &i, bson.M{consts.ID: oid})
+	err = m.conn.FindOneNoCache(ctx, &i, bson.M{consts.ID: oid})
 	if err != nil {
 		return consts.ErrNotFound
 	}
@@ -95,7 +92,7 @@ func (m *MongoMapper) Delete(ctx context.Context, id string) error {
 	i.DeleteTime = now
 	i.UpdateTime = now
 	i.Status = consts.DeleteStatus
-	_, err = m.conn.UpdateByID(ctx, key, oid, bson.M{consts.Set: i})
+	_, err = m.conn.UpdateByIDNoCache(ctx, oid, bson.M{consts.Set: i})
 	return err
 }
 
@@ -105,8 +102,7 @@ func (m *MongoMapper) FindOne(ctx context.Context, id string) (*Interface, error
 		return nil, consts.ErrInValidId
 	}
 	var inf Interface
-	key := prefixKeyCacheKey + id
-	err = m.conn.FindOne(ctx, key, &inf, bson.M{
+	err = m.conn.FindOneNoCache(ctx, &inf, bson.M{
 		consts.ID:     oid,
 		consts.Status: bson.M{consts.NotEqual: consts.DeleteStatus},
 	})
@@ -122,8 +118,7 @@ func (m *MongoMapper) FindOne(ctx context.Context, id string) (*Interface, error
 
 func (m *MongoMapper) FindOneByBaseInfIdAndUserId(ctx context.Context, baseInfId string, userId string) (*Interface, error) {
 	var inf Interface
-	key := prefixKeyCacheKey + baseInfId + userId
-	err := m.conn.FindOne(ctx, key, &inf, bson.M{
+	err := m.conn.FindOneNoCache(ctx, &inf, bson.M{
 		consts.BaseInterfaceId: baseInfId,
 		consts.UserID:          userId,
 		consts.Status:          bson.M{consts.NotEqual: consts.DeleteStatus},

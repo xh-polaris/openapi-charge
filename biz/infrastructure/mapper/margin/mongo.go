@@ -40,15 +40,14 @@ func (mon *MongoMapper) Insert(ctx context.Context, m *Margin) (string, error) {
 		m.CreateTime = time.Now()
 		m.UpdateTime = m.CreateTime
 	}
-	key := prefixKeyCacheKey + m.ID.Hex()
-	_, err := mon.conn.InsertOne(ctx, key, m)
+	_, err := mon.conn.InsertOneNoCache(ctx, m)
 	return m.ID.Hex(), err
 }
 
 func (mon *MongoMapper) Update(ctx context.Context, m *Margin) error {
 	m.UpdateTime = time.Now()
-	key := prefixKeyCacheKey + m.ID.Hex()
-	_, err := mon.conn.UpdateByID(ctx, key, m.ID, bson.M{consts.Set: m})
+
+	_, err := mon.conn.UpdateByIDNoCache(ctx, m.ID, bson.M{consts.Set: m})
 	return err
 }
 
@@ -57,8 +56,7 @@ func (mon *MongoMapper) UpdateMargin(ctx context.Context, id string, increment i
 	if err != nil {
 		return consts.ErrInValidId
 	}
-	key := prefixKeyCacheKey + id
-	_, err = mon.conn.UpdateByID(ctx, key, oid, bson.M{"$inc": bson.M{"margin": increment}})
+	_, err = mon.conn.UpdateByIDNoCache(ctx, oid, bson.M{"$inc": bson.M{"margin": increment}})
 	return err
 }
 
@@ -68,8 +66,7 @@ func (mon *MongoMapper) FindOne(ctx context.Context, id string) (*Margin, error)
 		return nil, consts.ErrInValidId
 	}
 	var m Margin
-	key := prefixKeyCacheKey + id
-	err = mon.conn.FindOne(ctx, key, &m, bson.M{
+	err = mon.conn.FindOneNoCache(ctx, &m, bson.M{
 		consts.ID:     oid,
 		consts.Status: bson.M{consts.NotEqual: consts.DeleteStatus},
 	})
@@ -106,8 +103,7 @@ func (mon *MongoMapper) Delete(ctx context.Context, id string) error {
 		return consts.ErrInValidId
 	}
 	var m Margin
-	key := prefixKeyCacheKey + id
-	err = mon.conn.FindOne(ctx, key, &m, bson.M{consts.ID: oid})
+	err = mon.conn.FindOneNoCache(ctx, &m, bson.M{consts.ID: oid})
 	if err != nil {
 		return consts.ErrNotFound
 	}
@@ -115,6 +111,6 @@ func (mon *MongoMapper) Delete(ctx context.Context, id string) error {
 	m.DeleteTime = now
 	m.UpdateTime = now
 	m.Status = consts.DeleteStatus
-	_, err = mon.conn.UpdateByID(ctx, key, oid, bson.M{consts.Set: m})
+	_, err = mon.conn.UpdateByIDNoCache(ctx, oid, bson.M{consts.Set: m})
 	return err
 }
