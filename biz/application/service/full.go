@@ -92,7 +92,7 @@ func (s *FullInterfaceService) UpdateMargin(ctx context.Context, req *charge.Upd
 			Msg:  "完整接口不存在或已删除",
 		}, err
 	}
-	if req.Increment < 0 || inf.Margin+req.Increment < 0 {
+	if req.Increment < 0 && (inf.Margin+req.Increment) < 0 {
 		return &charge.UpdateMarginResp{
 			Done: false,
 			Msg:  "接口余量不足",
@@ -107,7 +107,7 @@ func (s *FullInterfaceService) UpdateMargin(ctx context.Context, req *charge.Upd
 	}
 	return &charge.UpdateMarginResp{
 		Done: true,
-		Msg:  "接口余量" + strconv.FormatInt(req.Increment, 10),
+		Msg:  "接口余量" + formatIncrement(req.Increment),
 	}, err
 }
 
@@ -222,4 +222,11 @@ func (s *FullInterfaceService) GetFullAndBaseInterfaceForCheck(ctx context.Conte
 		Status:              fullInf.Status,
 	}, nil
 
+}
+
+func formatIncrement(increment int64) string {
+	if increment >= 0 {
+		return "+" + strconv.FormatInt(increment, 10)
+	}
+	return strconv.FormatInt(increment, 10)
 }

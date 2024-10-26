@@ -62,7 +62,7 @@ func (m *MongoMapper) UpdateMargin(ctx context.Context, id string, increment int
 		return consts.ErrInValidId
 	}
 	key := prefixKeyCacheKey + id
-	_, err = m.conn.UpdateByID(ctx, key, oid, bson.M{"$inc": bson.M{"increment": increment}})
+	_, err = m.conn.UpdateByID(ctx, key, oid, bson.M{"$inc": bson.M{"margin": increment}})
 	return err
 }
 
