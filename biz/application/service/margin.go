@@ -110,10 +110,11 @@ func (s *MarginService) UpdateMargin(ctx context.Context, req *charge.UpdateMarg
 			Msg:  "接口余量更新失败",
 		}, err
 	}
+
 	return &charge.UpdateMarginResp{
 		Done: true,
 		Msg:  "接口余量" + formatIncrement(req.Increment),
-	}, err
+	}, nil
 }
 
 func formatIncrement(increment int64) string {
