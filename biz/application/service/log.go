@@ -17,9 +17,9 @@ type ILogService interface {
 }
 
 type LogService struct {
-	FullInterfaceService *FullInterfaceService
-	LogMongoMapper       *log.MongoMapper
-	FullMongoMapper      *full.MongoMapper
+	MarginService   *MarginService
+	LogMongoMapper  *log.MongoMapper
+	FullMongoMapper *full.MongoMapper
 }
 
 var LogServiceSet = wire.NewSet(
@@ -39,16 +39,19 @@ func (s *LogService) CreateLog(ctx context.Context, req *charge.CreateLogReq) (r
 	// 计算价格
 	value := inf.Price * req.Count
 
-	// 扣除费用
-	deduct := true
-	resp, err := s.FullInterfaceService.UpdateMargin(ctx, &charge.UpdateMarginReq{
-		Id:        req.FullInterfaceId,
-		Increment: -1 * value,
-	})
-	if err != nil || resp.Done == false {
-		deduct = false
+	info := "调用失败，未扣除余额"
+	if req.Status == 0 {
+		// 成功调用，扣除费用
+		deduct := true
+		resp, marginErr := s.MarginService.UpdateMargin(ctx, &charge.UpdateMarginReq{
+			Id:        req.MarginId,
+			Increment: -1 * value,
+		})
+		if marginErr != nil || resp.Done == false {
+			deduct = false
+		}
+		info = deductInfo(deduct, req.MarginId, value)
 	}
-	info := deductInfo(deduct, req.FullInterfaceId, value)
 	// 创建日志
 	l := &log.Log{
 		FullInterfaceId: req.FullInterfaceId,
@@ -101,9 +104,9 @@ func (s *LogService) GetLog(ctx context.Context, req *charge.GetLogReq) (res *ch
 func deductInfo(d bool, id string, value int64) string {
 	var result string
 	if !d {
-		result = fmt.Sprintf("完整接口id: %s 扣除费用%d 失败", id, value)
+		result = fmt.Sprintf("用户余量id: %s 扣除费用%d 失败", id, value)
 	} else {
-		result = fmt.Sprintf("完整接口id: %s 扣除费用%d 成功", id, value)
+		result = fmt.Sprintf("用户余量id: %s 扣除费用%d 成功", id, value)
 	}
 	return result
 }

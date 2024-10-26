@@ -9,6 +9,7 @@ import (
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/full"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/gradient"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/log"
+	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/margin"
 )
 
 var ChargeServerProvider = wire.NewSet(
@@ -40,4 +41,5 @@ var MapperSet = wire.NewSet(
 	full.NewMongoMapper,
 	gradient.NewMongoMapper,
 	log.NewMongoMapper,
+	margin.NewMongoMapper,
 )
