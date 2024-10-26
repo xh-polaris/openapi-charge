@@ -52,13 +52,13 @@ func (mon *MongoMapper) Update(ctx context.Context, m *Margin) error {
 	return err
 }
 
-func (m *MongoMapper) UpdateMargin(ctx context.Context, id string, increment int64) error {
+func (mon *MongoMapper) UpdateMargin(ctx context.Context, id string, increment int64) error {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return consts.ErrInValidId
 	}
 	key := prefixKeyCacheKey + id
-	_, err = m.conn.UpdateByID(ctx, key, oid, bson.M{"$inc": bson.M{"margin": increment}})
+	_, err = mon.conn.UpdateByID(ctx, key, oid, bson.M{"$inc": bson.M{"margin": increment}})
 	return err
 }
 
@@ -85,8 +85,7 @@ func (mon *MongoMapper) FindOne(ctx context.Context, id string) (*Margin, error)
 
 func (mon *MongoMapper) FindOneByBaseInfIdAndUserId(ctx context.Context, fullInfId string, userId string) (*Margin, error) {
 	var m Margin
-	key := prefixKeyCacheKey + fullInfId + userId
-	err := mon.conn.FindOne(ctx, key, &m, bson.M{
+	err := mon.conn.FindOneNoCache(ctx, &m, bson.M{
 		consts.FullInterfaceId: fullInfId,
 		consts.UserID:          userId,
 		consts.Status:          bson.M{consts.NotEqual: consts.DeleteStatus},

@@ -30,7 +30,7 @@ func (s *MarginService) CreateMargin(ctx context.Context, req *charge.CreateMarg
 	if err == nil && oldMar != nil {
 		return &charge.CreateMarginResp{
 			Done:     false,
-			Msg:      "已创建过完整接口",
+			Msg:      "已创建过接口余量",
 			MarginId: oldMar.ID.Hex(),
 		}, nil
 	}
@@ -47,13 +47,13 @@ func (s *MarginService) CreateMargin(ctx context.Context, req *charge.CreateMarg
 	if err != nil {
 		return &charge.CreateMarginResp{
 			Done:     false,
-			Msg:      "创建完整接口失败",
+			Msg:      "创建接口余量失败",
 			MarginId: marginId,
 		}, err
 	}
 	return &charge.CreateMarginResp{
 		Done:     true,
-		Msg:      "创建完整接口成功",
+		Msg:      "创建接口余量成功",
 		MarginId: marginId,
 	}, nil
 
