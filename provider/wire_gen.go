@@ -13,6 +13,7 @@ import (
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/config"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/base"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/full"
+	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/gradient"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/log"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/margin"
 )
@@ -33,7 +34,10 @@ func NewProvider() (*adaptor.ChargeServer, error) {
 		FullInterfaceMongoMapper: fullMongoMapper,
 		BaseInterfaceMongoMapper: mongoMapper,
 	}
-	gradientService := &service.GradientService{}
+	gradientMongoMapper := gradient.NewMongoMapper(configConfig)
+	gradientService := &service.GradientService{
+		GradientMongoMapper: gradientMongoMapper,
+	}
 	marginMongoMapper := margin.NewMongoMapper(configConfig)
 	marginService := &service.MarginService{
 		MarginMongoMapper: marginMongoMapper,

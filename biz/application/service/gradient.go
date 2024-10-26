@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/wire"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/gradient"
 	"github.com/xh-polaris/service-idl-gen-go/kitex_gen/openapi/charge"
@@ -19,7 +20,7 @@ type GradientService struct {
 }
 
 var GradientServiceSet = wire.NewSet(
-	wire.Struct(new(GradientService)),
+	wire.Struct(new(GradientService), "*"),
 	wire.Bind(new(IGradientService), new(*GradientService)),
 )
 
@@ -31,6 +32,9 @@ func (s *GradientService) CreateGradient(ctx context.Context, req *charge.Create
 		Status:          0,
 		CreateTime:      now,
 		UpdateTime:      now,
+	}
+	if s.GradientMongoMapper == nil {
+		fmt.Printf("is NIl")
 	}
 	err := s.GradientMongoMapper.Insert(ctx, g)
 	if err != nil {
