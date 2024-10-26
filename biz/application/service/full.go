@@ -33,6 +33,15 @@ var FullInterfaceServiceSet = wire.NewSet(
 )
 
 func (s *FullInterfaceService) CreateFullInterface(ctx context.Context, req *charge.CreateFullInterfaceReq) (*charge.CreateFullInterfaceResp, error) {
+	oldInf, err := s.FullInterfaceMongoMapper.FindOneByBaseInfIdAndUserId(ctx, req.BaseInterfaceId, req.UserId)
+	if err == nil && oldInf != nil {
+		return &charge.CreateFullInterfaceResp{
+			Done:            false,
+			Msg:             "已创建过完整接口",
+			FullInterfaceId: oldInf.ID.Hex(),
+		}, nil
+	}
+
 	now := time.Now()
 	inf := &full.Interface{
 		BaseInterfaceId: req.BaseInterfaceId,
@@ -53,8 +62,9 @@ func (s *FullInterfaceService) CreateFullInterface(ctx context.Context, req *cha
 		}, err
 	}
 	return &charge.CreateFullInterfaceResp{
-		Done: true,
-		Msg:  "创建完整接口成功",
+		Done:            true,
+		Msg:             "创建完整接口成功",
+		FullInterfaceId: fullInterfaceId,
 	}, nil
 
 }
