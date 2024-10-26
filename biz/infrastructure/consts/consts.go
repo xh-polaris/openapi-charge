@@ -9,7 +9,7 @@ const (
 	DeleteStatus     = 3
 	NotEqual         = "$ne"
 	Set              = "$set"
-	BasicInterfaceId = "basic_interface_id"
+	BasicInterfaceId = "base_interface_id"
 	FullInterfaceId  = "full_interface_id"
 	Host             = "host"
 	Method           = "method"
