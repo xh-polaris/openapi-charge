@@ -8,14 +8,12 @@ import (
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/base"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/full"
 	"github.com/xh-polaris/service-idl-gen-go/kitex_gen/openapi/charge"
-	"strconv"
 	"time"
 )
 
 type IFullInterfaceService interface {
 	CreateFullInterface(ctx context.Context, req *charge.CreateFullInterfaceReq) (*charge.CreateFullInterfaceResp, error)
 	UpdateFullInterface(ctx context.Context, req *charge.UpdateFullInterfaceReq) (*charge.UpdateFullInterfaceResp, error)
-	UpdateMargin(ctx context.Context, req *charge.UpdateMarginReq) (*charge.UpdateMarginResp, error)
 	DeleteFullInterface(ctx context.Context, req *charge.DeleteFullInterfaceReq) (*charge.DeleteFullInterfaceResp, error)
 	GetFullInterface(ctx context.Context, req *charge.GetFullInterfaceReq) (*charge.GetFullInterfaceResp, error)
 	GetOneFullInterface(ctx context.Context, req *charge.GetOneFullInterfaceReq) (res *charge.GetOneFullInterfaceResp, err error)
@@ -48,7 +46,6 @@ func (s *FullInterfaceService) CreateFullInterface(ctx context.Context, req *cha
 		UserId:          req.UserId,
 		ChargeType:      int64(req.ChargeType),
 		Price:           req.Price,
-		Margin:          req.Margin,
 		Status:          0,
 		CreateTime:      now,
 		UpdateTime:      now,
@@ -92,33 +89,6 @@ func (s *FullInterfaceService) UpdateFullInterface(ctx context.Context, req *cha
 		Done: true,
 		Msg:  "更新完整接口成功",
 	}, nil
-}
-
-func (s *FullInterfaceService) UpdateMargin(ctx context.Context, req *charge.UpdateMarginReq) (*charge.UpdateMarginResp, error) {
-	inf, err := s.FullInterfaceMongoMapper.FindOne(ctx, req.Id)
-	if err != nil {
-		return &charge.UpdateMarginResp{
-			Done: false,
-			Msg:  "完整接口不存在或已删除",
-		}, err
-	}
-	if req.Increment < 0 && (inf.Margin+req.Increment) < 0 {
-		return &charge.UpdateMarginResp{
-			Done: false,
-			Msg:  "接口余量不足",
-		}, err
-	}
-	err = s.FullInterfaceMongoMapper.UpdateMargin(ctx, req.Id, req.Increment)
-	if err != nil {
-		return &charge.UpdateMarginResp{
-			Done: false,
-			Msg:  "接口余量更新失败",
-		}, err
-	}
-	return &charge.UpdateMarginResp{
-		Done: true,
-		Msg:  "接口余量" + formatIncrement(req.Increment),
-	}, err
 }
 
 func (s *FullInterfaceService) DeleteFullInterface(ctx context.Context, req *charge.DeleteFullInterfaceReq) (*charge.DeleteFullInterfaceResp, error) {
@@ -177,7 +147,6 @@ func (s *FullInterfaceService) GetOneFullInterface(ctx context.Context, req *cha
 			UserId:          inf.UserId,
 			ChargeType:      charge.ChargeType(inf.ChargeType),
 			Price:           inf.Price,
-			Margin:          inf.Margin,
 			Status:          charge.InterfaceStatus(inf.Status),
 			CreateTime:      inf.CreateTime.Unix(),
 			UpdateTime:      inf.UpdateTime.Unix(),
@@ -232,11 +201,4 @@ func (s *FullInterfaceService) GetFullAndBaseInterfaceForCheck(ctx context.Conte
 		Status:              fullInf.Status,
 	}, nil
 
-}
-
-func formatIncrement(increment int64) string {
-	if increment >= 0 {
-		return "+" + strconv.FormatInt(increment, 10)
-	}
-	return strconv.FormatInt(increment, 10)
 }

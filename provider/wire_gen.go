@@ -30,17 +30,24 @@ func NewProvider() (*adaptor.ChargeServer, error) {
 	fullMongoMapper := full.NewMongoMapper(configConfig)
 	fullInterfaceService := &service.FullInterfaceService{
 		FullInterfaceMongoMapper: fullMongoMapper,
+		BaseInterfaceMongoMapper: mongoMapper,
 	}
 	gradientService := &service.GradientService{}
+	marginService := &service.MarginService{
+		MarginMongoMapper:        fullMongoMapper,
+		BaseInterfaceMongoMapper: mongoMapper,
+	}
 	interfaceController := &controller.InterfaceController{
 		BaseInterfaceService: baseInterfaceService,
 		FullInterfaceService: fullInterfaceService,
 		GradientService:      gradientService,
+		MarginService:        marginService,
 	}
 	logMongoMapper := log.NewMongoMapper(configConfig)
 	logService := &service.LogService{
-		LogMongoMapper:  logMongoMapper,
-		FullMongoMapper: fullMongoMapper,
+		FullInterfaceService: fullInterfaceService,
+		LogMongoMapper:       logMongoMapper,
+		FullMongoMapper:      fullMongoMapper,
 	}
 	logController := &controller.LogController{
 		LogService: logService,

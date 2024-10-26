@@ -22,7 +22,6 @@ const (
 type IMongoMapper interface {
 	Insert(ctx context.Context, i *Interface) error
 	Update(ctx context.Context, i *Interface) error
-	UpdateMargin(ctx context.Context, id string, increment int64) error
 	FindAndCountByUserId(ctx context.Context, userId string, p *basic.PaginationOptions) ([]*Interface, int64, error)
 	FindOne(ctx context.Context, id string) (*Interface, error)
 	FindOneByBaseInfIdAndUserId(ctx context.Context, baseInfId string, userId string) (*Interface, error)
@@ -53,16 +52,6 @@ func (m *MongoMapper) Update(ctx context.Context, i *Interface) error {
 	i.UpdateTime = time.Now()
 	key := prefixKeyCacheKey + i.ID.Hex()
 	_, err := m.conn.UpdateByID(ctx, key, i.ID, bson.M{consts.Set: i})
-	return err
-}
-
-func (m *MongoMapper) UpdateMargin(ctx context.Context, id string, increment int64) error {
-	oid, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return consts.ErrInValidId
-	}
-	key := prefixKeyCacheKey + id
-	_, err = m.conn.UpdateByID(ctx, key, oid, bson.M{"$inc": bson.M{"margin": increment}})
 	return err
 }
 
@@ -135,9 +124,9 @@ func (m *MongoMapper) FindOneByBaseInfIdAndUserId(ctx context.Context, baseInfId
 	var inf Interface
 	key := prefixKeyCacheKey + baseInfId + userId
 	err := m.conn.FindOne(ctx, key, &inf, bson.M{
-		consts.BasicInterfaceId: baseInfId,
-		consts.UserID:           userId,
-		consts.Status:           consts.EffectStatus,
+		consts.BaseInterfaceId: baseInfId,
+		consts.UserID:          userId,
+		consts.Status:          bson.M{consts.NotEqual: consts.DeleteStatus},
 	})
 	switch {
 	case err == nil:

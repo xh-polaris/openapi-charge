@@ -27,6 +27,7 @@ var ApplicationSet = wire.NewSet(
 	service.FullInterfaceServiceSet,
 	service.GradientServiceSet,
 	service.LogServiceSet,
+	service.MarginServiceSet,
 )
 
 var InfrastructureSet = wire.NewSet(
