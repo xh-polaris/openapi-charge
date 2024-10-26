@@ -11,7 +11,6 @@ type Interface struct {
 	UserId          string             `bson:"user_id" json:"userId"`
 	ChargeType      int64              `bson:"charge_type" json:"chargeType"`
 	Price           int64              `bson:"price" json:"price"`
-	Margin          int64              `bson:"margin" json:"margin"`
 	Status          int64              `bson:"status" json:"status"`
 	CreateTime      time.Time          `bson:"create_time" json:"createTime"`
 	UpdateTime      time.Time          `bson:"update_time" json:"updateTime"`

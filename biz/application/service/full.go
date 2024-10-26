@@ -185,7 +185,6 @@ func (s *FullInterfaceService) GetFullAndBaseInterfaceForCheck(ctx context.Conte
 			UserId:              "",
 			ChargeType:          0,
 			Price:               0,
-			Margin:              0,
 			Status:              0,
 		}, consts.ErrNoBaseInf
 	}
@@ -197,7 +196,6 @@ func (s *FullInterfaceService) GetFullAndBaseInterfaceForCheck(ctx context.Conte
 		UserId:              fullInf.UserId,
 		ChargeType:          fullInf.ChargeType,
 		Price:               fullInf.Price,
-		Margin:              fullInf.Margin,
 		Status:              fullInf.Status,
 	}, nil
 
