@@ -67,10 +67,14 @@ func (m *MongoMapper) FindOneByBaseInfId(ctx context.Context, baseInterfaceId st
 }
 
 func (m *MongoMapper) FindOne(ctx context.Context, id string) (*Gradient, error) {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, consts.ErrInValidId
+	}
 	var g Gradient
-	err := m.conn.FindOneNoCache(ctx, &g,
+	err = m.conn.FindOneNoCache(ctx, &g,
 		bson.M{
-			consts.ID:     id,
+			consts.ID:     oid,
 			consts.Status: bson.M{consts.NotEqual: consts.DeleteStatus},
 		})
 	switch {
