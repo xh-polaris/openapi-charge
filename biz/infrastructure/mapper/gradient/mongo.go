@@ -52,7 +52,7 @@ func (m *MongoMapper) FindOne(ctx context.Context, baseInterfaceId string) (*Gra
 	var g Gradient
 	err := m.conn.FindOneNoCache(ctx, &g,
 		bson.M{
-			consts.FullInterfaceId: baseInterfaceId,
+			consts.BaseInterfaceId: baseInterfaceId,
 			consts.Status:          bson.M{consts.NotEqual: consts.DeleteStatus},
 		})
 	switch {
