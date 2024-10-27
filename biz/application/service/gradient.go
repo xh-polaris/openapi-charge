@@ -73,7 +73,7 @@ func (s *GradientService) UpdateGradient(ctx context.Context, req *charge.Update
 }
 
 func (s *GradientService) GetGradient(ctx context.Context, req *charge.GetGradientReq) (*charge.GetGradientResp, error) {
-	data, err := s.GradientMongoMapper.FindOne(ctx, req.BaseInterfaceId)
+	data, err := s.GradientMongoMapper.FindOneByBaseInfId(ctx, req.BaseInterfaceId)
 	if err != nil {
 		return nil, err
 	}

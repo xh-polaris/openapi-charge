@@ -19,7 +19,8 @@ const (
 type IMongoMapper interface {
 	Insert(ctx context.Context, g *Gradient) error
 	Update(ctx context.Context, g *Gradient) error
-	FindOne(ctx context.Context, baseInterfaceId string) (*Gradient, error)
+	FindOneByBaseInfId(ctx context.Context, baseInterfaceId string) (*Gradient, error)
+	FindOne(ctx context.Context, id string) (*Gradient, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -48,12 +49,29 @@ func (m *MongoMapper) Update(ctx context.Context, g *Gradient) error {
 	return err
 }
 
-func (m *MongoMapper) FindOne(ctx context.Context, baseInterfaceId string) (*Gradient, error) {
+func (m *MongoMapper) FindOneByBaseInfId(ctx context.Context, baseInterfaceId string) (*Gradient, error) {
 	var g Gradient
 	err := m.conn.FindOneNoCache(ctx, &g,
 		bson.M{
 			consts.BaseInterfaceId: baseInterfaceId,
 			consts.Status:          bson.M{consts.NotEqual: consts.DeleteStatus},
+		})
+	switch {
+	case err == nil:
+		return &g, nil
+	case errors.Is(err, monc.ErrNotFound):
+		return nil, consts.ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
+func (m *MongoMapper) FindOne(ctx context.Context, id string) (*Gradient, error) {
+	var g Gradient
+	err := m.conn.FindOneNoCache(ctx, &g,
+		bson.M{
+			consts.ID:     id,
+			consts.Status: bson.M{consts.NotEqual: consts.DeleteStatus},
 		})
 	switch {
 	case err == nil:
