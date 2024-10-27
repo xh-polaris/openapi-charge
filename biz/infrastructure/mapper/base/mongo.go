@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"net/url"
+	"strings"
 	"time"
 )
 
@@ -140,16 +140,22 @@ func (m *MongoMapper) FindOneByURLAndMethod(ctx context.Context, rawURL string, 
 }
 
 func parseURL(rawURL string) (string, string) {
-	// 解析 URL
-	parsedURL, err := url.Parse(rawURL)
-	if err != nil {
-		fmt.Println("解析 URL 时发生错误:", err)
+	// 检查输入是否为空
+	if rawURL == "" {
+		fmt.Println("输入的 URL 为空")
 		return "", ""
 	}
 
+	// 查找第一个 `/` 的位置
+	slashIndex := strings.Index(rawURL, "/")
+	if slashIndex == -1 {
+		// 如果没有找到 `/`，整个输入就是 host
+		return rawURL, ""
+	}
+
 	// 获取 host 和 path
-	host := parsedURL.Host
-	path := parsedURL.Path
+	host := rawURL[:slashIndex]
+	path := rawURL[slashIndex:]
 
 	return host, path
 }

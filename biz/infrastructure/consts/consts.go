@@ -15,4 +15,6 @@ const (
 	Method          = "method"
 	Path            = "path"
 	EffectStatus    = 0
+	DeveloperRole   = "1"
+	EnterpriseRole  = "2"
 )

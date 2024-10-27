@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"github.com/google/wire"
 	"github.com/jinzhu/copier"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/consts"
@@ -176,16 +177,30 @@ func (s *FullInterfaceService) GetFullAndBaseInterfaceForCheck(ctx context.Conte
 
 	// 获取完整接口
 	fullInf, err := s.FullInterfaceMongoMapper.FindOneByBaseInfIdAndUserId(ctx, baseInf.ID.Hex(), userId)
+	// 若没有找到则是用的模板
 	if err != nil {
-		return &charge.GetFullAndBaseInterfaceForCheckResp{
-			Id:                  "",
-			BaseInterfaceId:     "",
-			BaseInterfaceStatus: 0,
-			UserId:              "",
-			ChargeType:          0,
-			Price:               0,
-			Status:              0,
-		}, consts.ErrNoBaseInf
+		if errors.Is(err, consts.ErrNotFound) {
+			var templateUserId string
+			if req.Role == 1 {
+				templateUserId = consts.DeveloperRole
+			} else {
+				templateUserId = consts.EnterpriseRole
+			}
+
+			// 查找模板
+			fullInf, err = s.FullInterfaceMongoMapper.FindOneByBaseInfIdAndUserId(ctx, baseInf.ID.Hex(), templateUserId)
+		}
+		if err != nil {
+			return &charge.GetFullAndBaseInterfaceForCheckResp{
+				Id:                  "",
+				BaseInterfaceId:     "",
+				BaseInterfaceStatus: 0,
+				UserId:              "",
+				ChargeType:          0,
+				Price:               0,
+				Status:              0,
+			}, consts.ErrNoBaseInf
+		}
 	}
 
 	return &charge.GetFullAndBaseInterfaceForCheckResp{
