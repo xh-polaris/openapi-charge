@@ -30,14 +30,14 @@ var LogServiceSet = wire.NewSet(
 func (s *LogService) CreateLog(ctx context.Context, req *charge.CreateLogReq) (res *charge.CreateLogResp, err error) {
 	// 查询完整接口
 	inf, err := s.FullMongoMapper.FindOne(ctx, req.FullInterfaceId)
-	if err != nil {
+	if err != nil || inf == nil {
 		return &charge.CreateLogResp{
 			Done: false,
 			Msg:  "完整接口不存在或被删除",
 		}, err
 	}
 	// 计算价格
-	value := inf.Price * req.Count
+	value := req.Count
 
 	info := "调用失败，未扣除余额"
 	if req.Status == 0 {
