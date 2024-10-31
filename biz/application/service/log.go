@@ -37,20 +37,20 @@ func (s *LogService) CreateLog(ctx context.Context, req *charge.CreateLogReq) (r
 		}, err
 	}
 	// 计算价格
-	value := req.Count
+	value := req.Count * inf.Price
 
-	info := "调用失败，未扣除余额"
+	info := "调用失败，未扣除余量"
 	if req.Status == 0 {
 		// 成功调用，扣除费用
 		deduct := true
 		resp, marginErr := s.MarginService.UpdateMargin(ctx, &charge.UpdateMarginReq{
 			Id:        req.MarginId,
-			Increment: -1 * value,
+			Increment: -1 * req.Count,
 		})
 		if marginErr != nil || resp.Done == false {
 			deduct = false
 		}
-		info = deductInfo(deduct, req.MarginId, value)
+		info = deductInfo(deduct, req.MarginId, req.Count, value)
 	}
 	// 创建日志
 	l := &log.Log{
@@ -101,12 +101,12 @@ func (s *LogService) GetLog(ctx context.Context, req *charge.GetLogReq) (res *ch
 	}, nil
 }
 
-func deductInfo(d bool, id string, value int64) string {
+func deductInfo(d bool, id string, count int64, value int64) string {
 	var result string
 	if !d {
-		result = fmt.Sprintf("用户余量id: %s 扣除费用%d 失败", id, value)
+		result = fmt.Sprintf("用户余量id: %s 扣除余量%d 价值%d 失败", id, count, value)
 	} else {
-		result = fmt.Sprintf("用户余量id: %s 扣除费用%d 成功", id, value)
+		result = fmt.Sprintf("用户余量id: %s 扣除费用%d 价值%d 成功", id, count, value)
 	}
 	return result
 }
