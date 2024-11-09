@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/google/wire"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/margin"
+	"github.com/xh-polaris/openapi-charge/biz/infrastructure/transaction"
 	"github.com/xh-polaris/service-idl-gen-go/kitex_gen/openapi/charge"
 	"strconv"
 	"time"
@@ -18,6 +19,7 @@ type IMarginService interface {
 
 type MarginService struct {
 	MarginMongoMapper *margin.MongoMapper
+	MarginTransaction *transaction.MarginTransaction
 }
 
 var MarginServiceSet = wire.NewSet(
@@ -90,30 +92,16 @@ func (s *MarginService) DeleteMargin(ctx context.Context, req *charge.DeleteMarg
 }
 
 func (s *MarginService) UpdateMargin(ctx context.Context, req *charge.UpdateMarginReq) (*charge.UpdateMarginResp, error) {
-	mar, err := s.MarginMongoMapper.FindOne(ctx, req.Id)
+	err := s.MarginTransaction.UpdateMargin(ctx, req.Id, req.Increment)
 	if err != nil {
 		return &charge.UpdateMarginResp{
 			Done: false,
-			Msg:  "接口余量不存在或已删除",
+			Msg:  "更新余额失败",
 		}, err
 	}
-	if req.Increment < 0 && (mar.Margin+req.Increment) < 0 {
-		return &charge.UpdateMarginResp{
-			Done: false,
-			Msg:  "接口余量不足",
-		}, err
-	}
-	err = s.MarginMongoMapper.UpdateMargin(ctx, req.Id, req.Increment)
-	if err != nil {
-		return &charge.UpdateMarginResp{
-			Done: false,
-			Msg:  "接口余量更新失败",
-		}, err
-	}
-
 	return &charge.UpdateMarginResp{
 		Done: true,
-		Msg:  "接口余量" + formatIncrement(req.Increment),
+		Msg:  "余额变化:" + formatIncrement(req.Increment),
 	}, nil
 }
 

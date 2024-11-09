@@ -16,6 +16,7 @@ import (
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/gradient"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/log"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/margin"
+	"github.com/xh-polaris/openapi-charge/biz/infrastructure/transaction"
 )
 
 // Injectors from wire.go:
@@ -39,8 +40,10 @@ func NewProvider() (*adaptor.ChargeServer, error) {
 		GradientMongoMapper: gradientMongoMapper,
 	}
 	marginMongoMapper := margin.NewMongoMapper(configConfig)
+	marginTransaction := transaction.NewMarginTransaction(configConfig)
 	marginService := &service.MarginService{
 		MarginMongoMapper: marginMongoMapper,
+		MarginTransaction: marginTransaction,
 	}
 	interfaceController := &controller.InterfaceController{
 		BaseInterfaceService: baseInterfaceService,

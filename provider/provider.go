@@ -10,6 +10,7 @@ import (
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/gradient"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/log"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/margin"
+	"github.com/xh-polaris/openapi-charge/biz/infrastructure/transaction"
 )
 
 var ChargeServerProvider = wire.NewSet(
@@ -34,6 +35,7 @@ var ApplicationSet = wire.NewSet(
 var InfrastructureSet = wire.NewSet(
 	config.NewConfig,
 	MapperSet,
+	TransactionSet,
 )
 
 var MapperSet = wire.NewSet(
@@ -42,4 +44,8 @@ var MapperSet = wire.NewSet(
 	gradient.NewMongoMapper,
 	log.NewMongoMapper,
 	margin.NewMongoMapper,
+)
+
+var TransactionSet = wire.NewSet(
+	transaction.NewMarginTransaction,
 )
