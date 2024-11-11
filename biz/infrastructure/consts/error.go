@@ -10,4 +10,5 @@ var (
 	ErrRepetition         = errors.New("create repetition")
 	ErrUpdate             = errors.New("update failed")
 	ErrInsufficientMargin = errors.New("insufficient margin")
+	ErrAccount            = errors.New("insert account error")
 )

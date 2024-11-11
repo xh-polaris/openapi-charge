@@ -92,7 +92,12 @@ func (s *MarginService) DeleteMargin(ctx context.Context, req *charge.DeleteMarg
 }
 
 func (s *MarginService) UpdateMargin(ctx context.Context, req *charge.UpdateMarginReq) (*charge.UpdateMarginResp, error) {
-	err := s.MarginTransaction.UpdateMargin(ctx, req.Id, req.Increment)
+	var txId string
+	if req.TxId != nil {
+		txId = *req.TxId
+	}
+
+	err := s.MarginTransaction.UpdateMargin(ctx, req.Id, req.Increment, txId)
 	if err != nil {
 		return &charge.UpdateMarginResp{
 			Done: false,
