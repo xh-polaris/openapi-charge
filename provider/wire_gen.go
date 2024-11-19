@@ -11,6 +11,7 @@ import (
 	"github.com/xh-polaris/openapi-charge/biz/adaptor/controller"
 	"github.com/xh-polaris/openapi-charge/biz/application/service"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/config"
+	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/account"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/base"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/full"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/gradient"
@@ -57,8 +58,13 @@ func NewProvider() (*adaptor.ChargeServer, error) {
 		LogMongoMapper:  logMongoMapper,
 		FullMongoMapper: fullMongoMapper,
 	}
+	accountMongoMapper := account.NewMongoMapper(configConfig)
+	accountService := &service.AccountService{
+		AccountMongoMapper: accountMongoMapper,
+	}
 	logController := &controller.LogController{
-		LogService: logService,
+		LogService:     logService,
+		AccountService: accountService,
 	}
 	chargeServer := &adaptor.ChargeServer{
 		IInterfaceController: interfaceController,
