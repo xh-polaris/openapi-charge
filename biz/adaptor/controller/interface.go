@@ -25,6 +25,7 @@ type IInterfaceController interface {
 	CreateGradient(ctx context.Context, req *charge.CreateGradientReq) (res *charge.CreateGradientResp, err error)
 	UpdateGradient(ctx context.Context, req *charge.UpdateGradientReq) (res *charge.UpdateGradientResp, err error)
 	GetGradient(ctx context.Context, req *charge.GetGradientReq) (res *charge.GetGradientResp, err error)
+	GetAmount(ctx context.Context, req *charge.GetAmountReq) (res *charge.GetAmountResp, err error)
 }
 
 type InterfaceController struct {
@@ -89,4 +90,7 @@ func (c *InterfaceController) UpdateGradient(ctx context.Context, req *charge.Up
 }
 func (c *InterfaceController) GetGradient(ctx context.Context, req *charge.GetGradientReq) (res *charge.GetGradientResp, err error) {
 	return c.GradientService.GetGradient(ctx, req)
+}
+func (c *InterfaceController) GetAmount(ctx context.Context, req *charge.GetAmountReq) (res *charge.GetAmountResp, err error) {
+	return c.GradientService.GetAmount(ctx, req)
 }

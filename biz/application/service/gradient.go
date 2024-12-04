@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/wire"
+	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/full"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/gradient"
 	"github.com/xh-polaris/service-idl-gen-go/kitex_gen/openapi/charge"
 	"time"
@@ -13,10 +14,12 @@ type IGradientService interface {
 	CreateGradient(ctx context.Context, req *charge.CreateGradientReq) (*charge.CreateGradientResp, error)
 	UpdateGradient(ctx context.Context, req *charge.UpdateGradientReq) (*charge.UpdateGradientResp, error)
 	GetGradient(ctx context.Context, req *charge.GetGradientReq) (*charge.GetGradientResp, error)
+	GetAmount(ctx context.Context, req *charge.GetAmountReq) (*charge.GetAmountResp, error)
 }
 
 type GradientService struct {
-	GradientMongoMapper *gradient.MongoMapper
+	GradientMongoMapper  *gradient.MongoMapper
+	FullInterMongoMapper *full.MongoMapper
 }
 
 var GradientServiceSet = wire.NewSet(
@@ -88,6 +91,39 @@ func (s *GradientService) GetGradient(ctx context.Context, req *charge.GetGradie
 
 	return &charge.GetGradientResp{
 		Gradient: &g,
+	}, nil
+}
+
+func (s *GradientService) GetAmount(ctx context.Context, req *charge.GetAmountReq) (*charge.GetAmountResp, error) {
+	fullInfId := req.FullInfId
+	increment := req.Increment
+
+	fullInf, err := s.FullInterMongoMapper.FindOne(ctx, fullInfId)
+	if err != nil || fullInf == nil {
+		return nil, err
+	}
+
+	aGradient, err := s.GradientMongoMapper.FindOneByBaseInfId(ctx, fullInf.BaseInterfaceId)
+	if err != nil || aGradient == nil {
+		return nil, err
+	}
+
+	var rate int64 = 100
+	var originAmount = rate * fullInf.Price
+	var amount = originAmount
+	// 判断是否折扣
+	if aGradient.Status == 0 {
+		for _, discount := range aGradient.Discounts {
+			if increment > discount.Low {
+				rate = discount.Rate
+			}
+		}
+		amount = originAmount * rate / 100
+	}
+	return &charge.GetAmountResp{
+		Rate:         rate,
+		OriginAmount: originAmount,
+		Amount:       amount,
 	}, nil
 }
 
