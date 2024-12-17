@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/google/wire"
+	"github.com/xh-polaris/openapi-charge/biz/infrastructure/consts"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/full"
 	"github.com/xh-polaris/openapi-charge/biz/infrastructure/mapper/gradient"
 	"github.com/xh-polaris/service-idl-gen-go/kitex_gen/openapi/charge"
@@ -104,15 +106,20 @@ func (s *GradientService) GetAmount(ctx context.Context, req *charge.GetAmountRe
 	}
 
 	aGradient, err := s.GradientMongoMapper.FindOneByBaseInfId(ctx, fullInf.BaseInterfaceId)
-	if err != nil || aGradient == nil {
+	discount := true // 默认采用折扣
+	// 未找到则不折扣
+	if errors.Is(err, consts.ErrNotFound) {
+		discount = false
+	} else if err != nil {
 		return nil, err
 	}
 
 	var rate int64 = 100
 	var originAmount = rate * fullInf.Price
 	var amount = originAmount
-	// 判断是否折扣
-	if aGradient.Status == 0 {
+
+	// 判断折扣是否正常状态
+	if discount && aGradient.Status == 0 {
 		for _, discount := range aGradient.Discounts {
 			if increment > discount.Low {
 				rate = discount.Rate

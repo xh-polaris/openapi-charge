@@ -38,7 +38,8 @@ func NewProvider() (*adaptor.ChargeServer, error) {
 	}
 	gradientMongoMapper := gradient.NewMongoMapper(configConfig)
 	gradientService := &service.GradientService{
-		GradientMongoMapper: gradientMongoMapper,
+		GradientMongoMapper:      gradientMongoMapper,
+		FullInterfaceMongoMapper: fullMongoMapper,
 	}
 	marginMongoMapper := margin.NewMongoMapper(configConfig)
 	marginTransaction := transaction.NewMarginTransaction(configConfig)
