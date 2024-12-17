@@ -18,8 +18,8 @@ type IGradientService interface {
 }
 
 type GradientService struct {
-	GradientMongoMapper  *gradient.MongoMapper
-	FullInterMongoMapper *full.MongoMapper
+	GradientMongoMapper      *gradient.MongoMapper
+	FullInterfaceMongoMapper *full.MongoMapper
 }
 
 var GradientServiceSet = wire.NewSet(
@@ -98,7 +98,7 @@ func (s *GradientService) GetAmount(ctx context.Context, req *charge.GetAmountRe
 	fullInfId := req.FullInfId
 	increment := req.Increment
 
-	fullInf, err := s.FullInterMongoMapper.FindOne(ctx, fullInfId)
+	fullInf, err := s.FullInterfaceMongoMapper.FindOne(ctx, fullInfId)
 	if err != nil || fullInf == nil {
 		return nil, err
 	}
