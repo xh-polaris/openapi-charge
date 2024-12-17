@@ -106,10 +106,10 @@ func (s *GradientService) GetAmount(ctx context.Context, req *charge.GetAmountRe
 	}
 
 	aGradient, err := s.GradientMongoMapper.FindOneByBaseInfId(ctx, fullInf.BaseInterfaceId)
-	discount := true // 默认采用折扣
+	isDiscount := true // 默认采用折扣
 	// 未找到则不折扣
 	if errors.Is(err, consts.ErrNotFound) {
-		discount = false
+		isDiscount = false
 	} else if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (s *GradientService) GetAmount(ctx context.Context, req *charge.GetAmountRe
 	var amount = originAmount
 
 	// 判断折扣是否正常状态
-	if discount && aGradient.Status == 0 {
+	if isDiscount && aGradient.Status == 0 {
 		for _, discount := range aGradient.Discounts {
 			if increment > discount.Low {
 				rate = discount.Rate
