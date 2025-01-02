@@ -115,7 +115,7 @@ func (s *GradientService) GetAmount(ctx context.Context, req *charge.GetAmountRe
 	}
 
 	var rate int64 = 100
-	var originAmount = rate * fullInf.Price
+	var originAmount = increment * fullInf.Price
 	var amount = originAmount
 
 	// 判断折扣是否正常状态
